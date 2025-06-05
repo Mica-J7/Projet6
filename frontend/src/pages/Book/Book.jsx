@@ -79,7 +79,7 @@ function Book() {
               </p>
             </div>
           ) : null}
-          <BookInfo book={book[0]} />
+          <BookInfo book={book} />
           <BookRatingForm
             userRated={userRated}
             userId={connectedUser?.userId}

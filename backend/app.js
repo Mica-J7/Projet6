@@ -1,7 +1,6 @@
 require('dotenv').config();
 const MONGO_URI = process.env.MONGO_URI;
 const express = require('express');
-const cors = require('cors');
 const mongoose = require('mongoose');
 const path = require('path');
 
@@ -13,7 +12,6 @@ mongoose.connect(MONGO_URI)
   .catch(err => console.log('Connexion à MongoDB échouée :', err));
 
 const app = express();
-app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
