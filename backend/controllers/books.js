@@ -31,7 +31,7 @@ exports.createBook = async (req, res) => {
     res.status(201).json({ message: 'Livre enregistré' });
     
   } catch (error) {
-    res.status(400).json({ error })
+    res.status(500).json({ error })
   }
 };
 
@@ -122,4 +122,34 @@ exports.getAllBooks = (req, res) => {
   Book.find()
     .then(books => res.status(200).json(books))
     .catch(error => res.status(400).json({ error }));
+};
+
+
+exports.rateBook = async (req, res) => {
+  try {
+    const bookId = req.params.id;
+    const userId = req.auth.userId;
+    const grade = req.body.rating;
+
+    const book = await Book.findById(bookId);
+
+    // Vérifie si l'utilisateur a déjà noté
+    const hasAlreadyRated = book.ratings.some(r => r.userId === userId);
+    if (hasAlreadyRated) {
+      return res.status(403).json({ message: 'Vous avez déjà noté ce livre.' });
+    }
+
+    // Ajoute la note
+    book.ratings.push({ userId, grade });
+
+    // Met à jour la moyenne
+    const total = book.ratings.reduce((acc, rating) => acc + rating.grade, 0);
+    book.averageRating = total / book.ratings.length;
+
+    await book.save();
+
+    res.status(200).json(book);
+  } catch (error) {
+    res.status(400).json({ error });
+  }
 };

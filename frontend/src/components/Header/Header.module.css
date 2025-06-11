@@ -33,6 +33,10 @@
     font-weight: bold;
 }
 
+.Header span {
+  cursor: pointer;
+}
+
 @media all and (max-width: 600px) {
     .Header div {
         flex-direction: column;
