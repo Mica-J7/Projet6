@@ -1,6 +1,5 @@
 const Book = require('../models/Book');
 const fs = require('fs');
-const sharp = require('sharp');
 const path = require('path');
 
 
@@ -10,21 +9,10 @@ exports.createBook = async (req, res) => {
     delete bookObject._id;
     delete bookObject._userId;
 
-    const filename = `${Date.now()}-${bookObject.title || 'livre'}.webp`;
-    const outputPath = path.join(__dirname, '../images/', filename);
-
-    await sharp(req.file.buffer)
-      .resize(300, 400, {
-        fit: sharp.fit.cover,
-        position: sharp.strategy.center
-      })
-      .webp({ quality: 80 })
-      .toFile(outputPath);
-
     const book = new Book({
       ...bookObject,
       userId: req.auth.userId,
-      imageUrl: `${req.protocol}://${req.get('host')}/images/${filename}`
+      imageUrl: `${req.protocol}://${req.get('host')}/images/${req.processedImageFilename}`
     });
 
     await book.save();
@@ -45,33 +33,17 @@ exports.modifyBook = async (req, res) => {
     if (!book) return res.status(404).json({ message: 'Livre non trouvé' });
     if (book.userId != req.auth.userId) return res.status(403).json({ message: 'Non autorisé' });
 
-    // S'il y a une nouvelle image
-    if (req.file) {
-      const parsedBook = JSON.parse(req.body.book);
-      filename = `${Date.now()}-${parsedBook.title || 'livre'}.webp`;
-      const outputPath = path.join(__dirname, '../images', filename);
-
       // Supprimer l’ancienne image
       const oldFilename = book.imageUrl.split('/images/')[1];
       fs.unlink(path.join(__dirname, '../images', oldFilename), err => {
         if (err) console.error('Erreur suppression ancienne image :', err);
       });
 
-      // Traitement sharp
-      await sharp(req.file.buffer)
-        .resize(300, 400, {
-          fit: sharp.fit.cover,
-          position: sharp.strategy.center
-        })
-        .webp({ quality: 80 })
-        .toFile(outputPath);
-    }
-
     // Construction de l'objet à enregistrer
     const bookObject = req.file
       ? {
           ...JSON.parse(req.body.book),
-          imageUrl: `${req.protocol}://${req.get('host')}/images/${filename}`,
+          imageUrl: `${req.protocol}://${req.get('host')}/images/${req.processedImageFilename}`
         }
       : { ...req.body };
 
