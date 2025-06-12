@@ -125,3 +125,16 @@ exports.rateBook = async (req, res) => {
     res.status(400).json({ error });
   }
 };
+
+
+exports.getBestRatingBooks = async (req, res) => {
+  try {
+    const bestBooks = await Book.find()
+      .sort({ averageRating: -1 })  // trie par averageRating décroissant
+      .limit(3);                    // limite l'affichage à 3 livres
+
+    res.status(200).json(bestBooks);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
