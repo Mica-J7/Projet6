@@ -11,20 +11,17 @@ module.exports = async (req, res, next) => {
     if (err) return res.status(400).json({ error: 'Erreur lors de l’upload' });
 
     if (!req.file) {
-      return next(); // Aucun fichier => on continue (utile pour les PUT sans image)
+      return next();
     }
 
     try {
-      // Nom de fichier unique
       const filename = `${Date.now()}-${req.file.originalname.split(' ').join('_')}.webp`;
       const outputPath = path.join(__dirname, '../images', filename);
 
-      // Créer dossier s'il n'existe pas
       if (!fs.existsSync(path.dirname(outputPath))) {
         fs.mkdirSync(path.dirname(outputPath), { recursive: true });
       }
 
-      // Traitement avec sharp
       await sharp(req.file.buffer)
         .resize(300, 400, {
           fit: sharp.fit.cover,
@@ -33,7 +30,6 @@ module.exports = async (req, res, next) => {
         .webp({ quality: 80 })
         .toFile(outputPath);
 
-      // Ajout du nom de fichier traité à la requête
       req.processedImageFilename = filename;
       next();
 

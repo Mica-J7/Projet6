@@ -4,6 +4,17 @@ const User = require('../models/User');
 const SECRET_TOKEN = process.env.SECRET_TOKEN;
 
 exports.signup = (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ message: 'Email et mot de passe requis' });
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({ message: 'Format d’email invalide' });
+  }
+
   bcrypt.hash(req.body.password, 10)
     .then(hash => {
       const user = new User({
